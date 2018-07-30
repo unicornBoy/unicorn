@@ -1,0 +1,1 @@
+There should be a better way to start a day than waking up every morning.
