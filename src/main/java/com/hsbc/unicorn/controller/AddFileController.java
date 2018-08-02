@@ -17,8 +17,9 @@ public class AddFileController {
     private CloudFilesRepository cloudFilesRepository;
 
     @PostMapping("/add")
-    public void save(@RequestBody CloudFiles cloudFiles) {
-        cloudFilesRepository.save(cloudFiles);
+    public void save(MultipartFile file, HttpServletResponse response) throws IOException {
+        //cloudFilesRepository.save(cloudFiles);
+		String aa="";
     }
 }
 
