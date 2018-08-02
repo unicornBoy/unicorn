@@ -2,26 +2,25 @@ package com.hsbc.unicorn.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Calendar;
-import java.util.stream.Stream;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hsbc.unicorn.exception.StorageException;
-import com.hsbc.unicorn.exception.StorageFileNotFoundException;
 import com.hsbc.unicorn.util.StorageProperties;
 
+/**
+ * @author:lmm
+ * @date:2018/8/2
+ * @description:
+ */
 @Service
 public class FileSystemStorageService implements StorageService {
 
@@ -31,15 +30,21 @@ public class FileSystemStorageService implements StorageService {
     public FileSystemStorageService(StorageProperties properties) {
         this.rootLocation = Paths.get(properties.getLocation());
     }
-    
+
+    /**
+     * 保存文件在本地磁盘
+     *
+     * @param file
+     * @return
+     */
     @Override
     public String store(MultipartFile file) {
         String fileRealName = StringUtils.cleanPath(file.getOriginalFilename());
-        String extension  = StringUtils.getFilenameExtension(file.getOriginalFilename());
-        String fileName = Calendar.getInstance().getTimeInMillis()+"."+extension;
+        String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        String fileName = Calendar.getInstance().getTimeInMillis() + "." + extension;
         try {
             if (file.isEmpty()) {
-                throw new StorageException("Failed to store empty file " + fileRealName);
+                throw new StorageException("is empty file " + fileRealName);
             }
             if (fileRealName.contains("..")) {
                 // This is a security check
@@ -49,51 +54,22 @@ public class FileSystemStorageService implements StorageService {
             }
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, this.rootLocation.resolve(fileName),
-                    StandardCopyOption.REPLACE_EXISTING);
+                        StandardCopyOption.REPLACE_EXISTING);
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new StorageException("Failed to store file " + fileRealName, e);
         }
         return fileName;
     }
 
-    @Override
-    public Stream<Path> loadAll() {
-        try {
-            return Files.walk(this.rootLocation, 1)
-                .filter(path -> !path.equals(this.rootLocation))
-                .map(this.rootLocation::relativize);
-        }
-        catch (IOException e) {
-            throw new StorageException("Failed to read stored files", e);
-        }
 
-    }
 
     @Override
     public Path load(String filename) {
         return rootLocation.resolve(filename);
     }
 
-    @Override
-    public Resource loadAsResource(String filename) {
-        try {
-            Path file = load(filename);
-            Resource resource = new UrlResource(file.toUri());
-            if (resource.exists() || resource.isReadable()) {
-                return resource;
-            }
-            else {
-                throw new StorageFileNotFoundException(
-                        "Could not read file: " + filename);
 
-            }
-        }
-        catch (MalformedURLException e) {
-            throw new StorageFileNotFoundException("Could not read file: " + filename, e);
-        }
-    }
 
     @Override
     public void deleteAll() {
@@ -101,11 +77,18 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
+    public void deleteOne(String fileName) {
+        try {
+            Files.delete(rootLocation.resolve(fileName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    @Override
     public void init() {
         try {
             Files.createDirectories(rootLocation);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new StorageException("Could not initialize storage", e);
         }
     }
