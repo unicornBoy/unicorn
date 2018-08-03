@@ -21,9 +21,6 @@ import com.hsbc.unicorn.service.StorageService;
 public class CloudFilesController {
 	
 	@Autowired
-	private StorageService storageService;
-	
-	@Autowired
 	private CloudFilesRepository cloudFilesRepository;
 	
 	/**
@@ -33,7 +30,9 @@ public class CloudFilesController {
 	 */
 	@GetMapping("/list")
 	public Iterable<CloudFiles> listUploadedFiles() throws IOException {
+		//查询出数据库文件对象
 		Iterable<CloudFiles> cloudFilesIt = cloudFilesRepository.findAll();
+		//然后根据文件名称取文件
 		return cloudFilesIt;
 	}
 
