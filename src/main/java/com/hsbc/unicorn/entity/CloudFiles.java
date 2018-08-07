@@ -13,8 +13,6 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "cloud_files" )
-@Getter
-@Setter
 public class CloudFiles {
 
 	@Id

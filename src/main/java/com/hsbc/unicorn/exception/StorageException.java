@@ -1,6 +1,5 @@
 package com.hsbc.unicorn.exception;
 
-@SuppressWarnings("serial")
 public class StorageException extends RuntimeException {
 
     public StorageException(String message) {
